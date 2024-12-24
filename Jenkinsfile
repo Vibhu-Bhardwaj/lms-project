@@ -13,12 +13,9 @@ pipeline {
             steps {
                 sh '''
                 echo "Downloading Docker Compose..."
-                curl -L "https://github.com/docker/compose/releases/download/2.20.2/docker-compose-$(uname -s)-$(uname -m)" -o ./docker-compose
-                if [ $? -ne 0 ]; then
-                    echo "Failed to download Docker Compose. Exiting."
-                    exit 1
-                fi
-                chmod +x ./docker-compose
+                curl -L "https://github.com/docker/compose/releases/latest/download/docker-compose-$(uname -s)-$(uname -m)" -o /usr/local/bin/docker-compose
+                chmod +x /usr/local/bin/docker-compose
+                ln -s /usr/local/bin/docker-compose /usr/bin/docker-compose
                 '''
             }
         }
@@ -27,11 +24,7 @@ pipeline {
             steps {
                 sh '''
                 echo "Verifying Docker Compose installation..."
-                ./docker-compose --version
-                if [ $? -ne 0 ]; then
-                    echo "Docker Compose verification failed. Exiting."
-                    exit 1
-                fi
+                docker-compose --version
                 '''
             }
         }
@@ -39,24 +32,24 @@ pipeline {
         stage('Build') {
             steps {
                 sh '''
-                echo "Shutting down any existing containers..."
-                ./docker-compose down || true
-                
+                echo "Stopping existing containers..."
+                docker-compose down || true
+
                 echo "Building and starting containers..."
-                ./docker-compose up --build -d
+                docker-compose up --build -d
                 '''
             }
         }
 
         stage('Test') {
             steps {
-                echo 'Running tests... (Add actual test commands here if needed)'
+                echo 'Running tests... (Add your test scripts here)'
             }
         }
 
         stage('Deploy') {
             steps {
-                echo 'Application deployed successfully!'
+                echo 'Deploying the application...'
             }
         }
     }
@@ -65,7 +58,7 @@ pipeline {
         always {
             sh '''
             echo "Cleaning up containers..."
-            ./docker-compose down
+            docker-compose down || true
             '''
         }
     }
