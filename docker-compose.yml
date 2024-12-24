@@ -1,0 +1,28 @@
+version: '3.8'
+
+services:
+  mariadb:
+    image: mariadb:latest
+    container_name: mariadb_container
+    environment:
+      MARIADB_ROOT_PASSWORD: root
+      MARIADB_DATABASE: lms2
+    ports:
+      - "3307:3306"  # Map MariaDB container port 3306 to host port 3307
+    volumes:
+      - mariadb_data:/var/lib/mysql  # Persist data in MariaDB
+
+  springboot-app:
+    build: .
+    container_name: springboot_container
+    ports:
+      - "8080:8080"  # Map Spring Boot app port
+    environment:
+      - SPRING_DATASOURCE_URL=jdbc:mariadb://mariadb:3306/lms2
+      - SPRING_DATASOURCE_USERNAME=root
+      - SPRING_DATASOURCE_PASSWORD=root
+    depends_on:
+      - mariadb
+
+volumes:
+  mariadb_data:  # Named volume for MariaDB persistence
