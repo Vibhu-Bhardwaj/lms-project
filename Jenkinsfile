@@ -13,9 +13,8 @@ pipeline {
             steps {
                 sh '''
                 echo "Downloading Docker Compose..."
-                curl -L "https://github.com/docker/compose/releases/latest/download/docker-compose-$(uname -s)-$(uname -m)" -o /usr/local/bin/docker-compose
-                chmod +x /usr/local/bin/docker-compose
-                ln -s /usr/local/bin/docker-compose /usr/bin/docker-compose
+                curl -L "https://github.com/docker/compose/releases/latest/download/docker-compose-$(uname -s)-$(uname -m)" -o ./docker-compose
+                chmod +x ./docker-compose
                 '''
             }
         }
@@ -24,7 +23,7 @@ pipeline {
             steps {
                 sh '''
                 echo "Verifying Docker Compose installation..."
-                docker-compose --version
+                ./docker-compose --version
                 '''
             }
         }
@@ -33,10 +32,10 @@ pipeline {
             steps {
                 sh '''
                 echo "Stopping existing containers..."
-                docker-compose down || true
+                ./docker-compose down || true
 
                 echo "Building and starting containers..."
-                docker-compose up --build -d
+                ./docker-compose up --build -d
                 '''
             }
         }
@@ -58,7 +57,7 @@ pipeline {
         always {
             sh '''
             echo "Cleaning up containers..."
-            docker-compose down || true
+            ./docker-compose down || true
             '''
         }
     }
