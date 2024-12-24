@@ -13,15 +13,14 @@ pipeline {
                 sh '''
                 curl -L "https://github.com/docker/compose/releases/download/2.20.2/docker-compose-$(uname -s)-$(uname -m)" -o ./docker-compose
                 chmod +x ./docker-compose
-                export PATH=$PATH:$PWD
                 '''
             }
         }
         stage('Build') {
             steps {
-                // Build the Spring Boot app using Docker Compose
-                sh 'docker-compose down'
-                sh 'docker-compose up --build -d'
+                // Use the locally downloaded docker-compose
+                sh './docker-compose down || true'
+                sh './docker-compose up --build -d'
             }
         }
         stage('Test') {
@@ -39,7 +38,8 @@ pipeline {
 
     post {
         always {
-            sh 'docker-compose down'
+            // Use the locally downloaded docker-compose
+            sh './docker-compose down'
         }
     }
 }
