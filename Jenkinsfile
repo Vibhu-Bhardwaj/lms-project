@@ -8,27 +8,52 @@ pipeline {
                 git branch: 'main', url: 'https://github.com/Vibhu-Bhardwaj/lms-project.git'
             }
         }
+
         stage('Install Docker Compose') {
             steps {
                 sh '''
+                echo "Downloading Docker Compose..."
                 curl -L "https://github.com/docker/compose/releases/download/2.20.2/docker-compose-$(uname -s)-$(uname -m)" -o ./docker-compose
+                if [ $? -ne 0 ]; then
+                    echo "Failed to download Docker Compose. Exiting."
+                    exit 1
+                fi
                 chmod +x ./docker-compose
                 '''
             }
         }
+
+        stage('Verify Docker Compose') {
+            steps {
+                sh '''
+                echo "Verifying Docker Compose installation..."
+                ./docker-compose --version
+                if [ $? -ne 0 ]; then
+                    echo "Docker Compose verification failed. Exiting."
+                    exit 1
+                fi
+                '''
+            }
+        }
+
         stage('Build') {
             steps {
-                // Use the locally downloaded docker-compose
-                sh './docker-compose down || true'
-                sh './docker-compose up --build -d'
+                sh '''
+                echo "Shutting down any existing containers..."
+                ./docker-compose down || true
+                
+                echo "Building and starting containers..."
+                ./docker-compose up --build -d
+                '''
             }
         }
+
         stage('Test') {
             steps {
-                // Add your testing commands here
-                echo 'Running tests...'
+                echo 'Running tests... (Add actual test commands here if needed)'
             }
         }
+
         stage('Deploy') {
             steps {
                 echo 'Application deployed successfully!'
@@ -38,8 +63,10 @@ pipeline {
 
     post {
         always {
-            // Use the locally downloaded docker-compose
-            sh './docker-compose down'
+            sh '''
+            echo "Cleaning up containers..."
+            ./docker-compose down
+            '''
         }
     }
 }
